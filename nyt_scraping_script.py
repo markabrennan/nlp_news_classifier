@@ -11,6 +11,7 @@ import pickle
 import re
 import time
 import random
+import validators
 
 
 
@@ -79,7 +80,7 @@ def get_nyt_month_archive(year, month):
         response = requests.get(url)
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
-    except HTTPError as http_err:
+    except requests.exceptions.HTTPError as http_err:
         logging.exception(f'HTTP error occurred: {http_err}')  # Python 3.6
     except Exception as err:
         logging.exception(f'Other error occurred: {err}')  # Python 3.6
@@ -106,69 +107,82 @@ def main():
 
 
     year = '2019'
-    month = '10'
+#    month = '10'
 
-    logging.info(f'API call for {month} {year}')
-
-    json_dict = get_nyt_month_archive(year, month)
+#    month_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+# test with one month!
+    month_list = [9]
 
     # save to file
-    arch_file_name = f'nyt_{month}_{year}_archive.json'
-    article_file_name = 'nyt_test.json'
-    pickle_file_name = 'nyt_test_articles.pkl'
+    arch_file_name = 'nyt_url_archives.json'
+    article_file_name = 'nyt_data.json'
 
-    with open(arch_file_name, 'w') as arch_file, open(article_file_name, 'w+') as article_file, open(pickle_file_name, 'wb') as pickle_file:
-        arch_file.write(json.dumps(json_dict))
+    # we will not pickle, given that it is redundant
+#    pickle_file_name = 'nyt_test_articles.pkl'
 
-        # get a dict of article urls of interest:
-        article_url_dicts = get_nyt_url_dicts(json_dict)
+    with open(arch_file_name, 'w+') as arch_file, open(article_file_name, 'w+') as article_file:
+        for month in month_list:
+            logging.info(f'Calling API for month: {month}')
+            json_dict = get_nyt_month_archive(year, str(month))
 
-        logging.info(f'Fetched {len(article_url_dicts)} article URL entries')
-        logging.info('Fetching each article...')
+            # get a dict of article urls of interest:
+            article_url_dicts = get_nyt_url_dicts(json_dict)
 
-        article_collection = []
-        for doc in article_url_dicts:
-            # get url:
-            url = doc['url']
-            dt = doc['date']
-            section = doc['section']
-            headline = doc['headline']
+            arch_file.write(json.dumps(article_url_dicts))
+            arch_file.write('\n')
 
-            try:
-                response = requests.get(url)
-                # If the response was successful, no Exception will be raised
-                response.raise_for_status()
-            except HTTPError as http_err:
-                logging.exception(f'HTTP error occurred: {http_err} - url: {url}')  # Python 3.6
-                continue
-            except Exception as err:
-                print(f'Other error occurred: {err} - url: {url}')  # Python 3.6
-                continue
-            else:
-                # success - do the text extraction!
-                soup = BeautifulSoup(response.content, 'html.parser')
-                article = get_nyt_article(soup)
 
-                # log it, then write it!
-                logging.info(f"date: {dt} | section: {section} | url: {url} | headline: {headline} | text: {article[0:20]}")
+            logging.info(f'Fetched {len(article_url_dicts)} article URL entries')
+            logging.info('Fetching each article...')
 
-                # create a data structure with our text
-                text_entry = dict(paper='NYT',
-                                  date=dt,
-                                  section=section,
-                                  url=url,
-                                  headline=headline,
-                                  text=article)
-                article_file.write(json.dumps(text_entry))
-                article_file.write('\n')
-                
-                article_collection.append(text_entry)
+            article_collection = []
+            for doc in article_url_dicts:
+                # get url:
+                url = doc['url']
+                dt = doc['date']
+                section = doc['section']
+                headline = doc['headline']
 
-                # now sleep a random period of time
-                time.sleep(random.choice(sleep_sequence))
+                try:
+                    logging.info(f'Getting page to scrape: {url}')
+
+                    if validators.url(url) == True:
+                        response = requests.get(url)
+                        # If the response was successful, no Exception will be raised
+                        response.raise_for_status()
+                    else:
+                        logging.exception(f'url is invalid!  url:  {url}')
+                        continue
+                except requests.exceptions.HTTPError as http_err:
+                    logging.exception(f'HTTP error occurred: {http_err} - url: {url}')  # Python 3.6
+                    continue
+                except Exception as err:
+                    logging.exception(f'Other error occurred: {err} - url: {url}')  # Python 3.6
+                    continue
+                else:
+                    # success - do the text extraction!
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    article = get_nyt_article(soup)
+
+                    # log it, then write it!
+                    logging.info(f"date: {dt} | section: {section} | url: {url} | headline: {headline} | text: {article[0:20]}")
+
+                    # create a data structure with our text
+                    text_entry = dict(paper='NYT',
+                                      date=dt,
+                                      section=section,
+                                      url=url,
+                                      headline=headline,
+                                      text=article)
+
+                    article_file.write(json.dumps(text_entry))
+                    article_file.write('\n')
+                    
+                    # now sleep a random period of time
+                    time.sleep(random.choice(sleep_sequence))
  
-
-        pickle.dump(article_collection, pickle_file)
+# we will remove pickling as it's redundant
+#        pickle.dump(article_collection, pickle_file)
 
 
 
