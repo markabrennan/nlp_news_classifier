@@ -9,6 +9,9 @@ import argparse
 import json
 import pickle
 import re
+import time
+import random
+
 
 
 # Set logging parameters
@@ -67,6 +70,7 @@ def get_nyt_url_dicts(data):
     
     return nyt_url_dicts
 
+
 def get_nyt_month_archive(year, month):
     base_search_url = 'https://api.nytimes.com/svc/archive/v1'
     url = f'{base_search_url}/{year}/{month}.json?api-key={config.nyt_api_key}'
@@ -96,6 +100,9 @@ def main():
     # print(args.month)
 
     # logging.info(f'month arg: {args.month}')
+
+    # set up sequence of sleep time to be randomized
+    sleep_sequence = [x/10 for x in range(8, 14)]
 
 
     year = '2019'
@@ -157,6 +164,10 @@ def main():
                 
                 article_collection.append(text_entry)
 
+                # now sleep a random period of time
+                time.sleep(random.choice(sleep_sequence))
+ 
+
         pickle.dump(article_collection, pickle_file)
 
 
@@ -166,5 +177,4 @@ def main():
 if __name__ == '__main__':
     #
     # test our script with constrained API call and
-    # with test tables for inserts
     main()
