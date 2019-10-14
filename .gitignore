@@ -6,6 +6,15 @@ __pycache__/
 # EXCLUDE CONFIG FILE!
 config.py
 
+# Exclude JSON, Pickle, HTML, txt, and other random
+# files
+*.json
+*.csv
+*.html
+*.txt
+*.pkl
+
+
 # C extensions
 *.so
 
