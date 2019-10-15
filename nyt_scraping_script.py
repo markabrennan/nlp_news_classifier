@@ -51,7 +51,7 @@ def get_nyt_article(soup):
 def get_nyt_url_dicts(data):
     nyt_url_dicts = []
     for doc in data['response']['docs']:
-        section_name = doc['section_name']
+        section_name = doc['section_name']jj
         if section_name == 'U.S.' or section_name == 'World':
             # make sure the url doesn't link to a video,
             # else we won't get any text - so skip
@@ -111,16 +111,16 @@ def main():
 
 #    month_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # test with one month!
-    month_list = [9]
+    month_list = [8]
 
     # save to file
-    arch_file_name = 'nyt_url_archives.json'
-    article_file_name = 'nyt_data.json'
+    arch_file_name = 'nyt_url_archives_aug.json'
+    article_file_name = 'nyt_data_aug.json'
 
     # we will not pickle, given that it is redundant
 #    pickle_file_name = 'nyt_test_articles.pkl'
 
-    with open(arch_file_name, 'w+') as arch_file, open(article_file_name, 'w+') as article_file:
+    with open(arch_file_name, 'a') as arch_file, open(article_file_name, 'a') as article_file:
         for month in month_list:
             logging.info(f'Calling API for month: {month}')
             json_dict = get_nyt_month_archive(year, str(month))
