@@ -50,22 +50,33 @@ def get_nyt_article(soup):
 
 def get_nyt_url_dicts(data):
     nyt_url_dicts = []
+
     for doc in data['response']['docs']:
-        section_name = doc['section_name']jj
-        if section_name == 'U.S.' or section_name == 'World':
+        section_name = doc.get('section_name')
+#        if section_name and (section_name == 'U.S.' or section_name == 'World'):
+# let's get World articles only!
+        if section_name and section_name == 'World':
             # make sure the url doesn't link to a video,
             # else we won't get any text - so skip
             # TO DO: make a better determination (some flag?)!
-            url = doc['web_url']
-            vid = r'/video'
-            if url.find(vid) > -1:
-                continue
+            url = doc.get('web_url')
+            if url:
+                url = doc['web_url']
+                vid = r'/video'
+                if url.find(vid) > -1:
+                    continue
             
-            base_dt = doc['pub_date']
-            dt = base_dt[0:base_dt.find('T')]
+            base_dt = doc.get('pub_date')
+            if base_dt:
+                dt = base_dt[0:base_dt.find('T')]
+
+            headline_main = doc.get('headline')
+            if headline_main:
+                headline = headline_main.get('main')
+
             dict_entry = dict(date=dt,
                              section=section_name,
-                             headline=doc['headline']['main'],
+                             headline=headline,
                              url=url)
             nyt_url_dicts.append(dict_entry)
     
@@ -111,11 +122,11 @@ def main():
 
 #    month_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # test with one month!
-    month_list = [8]
+    month_list = [6]
 
     # save to file
     arch_file_name = 'nyt_url_archives_aug.json'
-    article_file_name = 'nyt_data_aug.json'
+    article_file_name = 'nyt_data_jun.json'
 
     # we will not pickle, given that it is redundant
 #    pickle_file_name = 'nyt_test_articles.pkl'
