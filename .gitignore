@@ -3,6 +3,25 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# EXCLUDE model binary files
+*.npy
+
+# Gensim model files:
+*.id2word
+*.state
+
+# EXCLUDE CONFIG FILE!
+config.py
+
+# Exclude JSON, Pickle, HTML, txt, and other random
+# files
+*.json
+*.csv
+*.html
+*.txt
+*.pkl
+
+
 # C extensions
 *.so
 
